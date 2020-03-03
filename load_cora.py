@@ -23,7 +23,6 @@ def load_cora(content, cites):
             labels.append(class_id_dic[line_content[-1]])
             features.append(list(map(int, line_content[1:-1])))
     # Convert to numpy array once and for all
-    # TODO: check that this conversion really is necessary (cf use of Pytorch in the end)
     features = np.array(features)
     labels = np.array(labels)
 
@@ -39,25 +38,6 @@ def load_cora(content, cites):
             adjacency[idx1, idx2] = 1
             adjacency[idx2, idx1] = 1
     return (features, adjacency, labels)
-
-'''data_path = path + '/cora.npz_FILES/'
-
-np_load_old = np.load
-
-# modify the default parameters of np.load
-np.load = lambda *a,**k: np_load_old(*a, allow_pickle=True, **k)
-
-for file_ in os.listdir(data_path):
-    print(file_)
-    mat = np.load(data_path + file_)
-    print('shape:', mat.shape)
-    try:
-        print('range:', np.amin(mat), np.amax(mat))
-    except:
-        print('Could not compute range')
-        print(mat)
-
-np.load = np_load_old'''
 
 if __name__=='__main__':
     path = os.getcwd() + '/cora_own/'
