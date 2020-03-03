@@ -29,28 +29,18 @@ D_norm = np.diag(np.sum(A_norm, axis=0))
 
 D_invsqrt = np.linalg.inv(np.sqrt(D_norm))
 A_hat = D_invsqrt @ A_norm @ D_invsqrt
-print('Creating the normalized-Slef-cautious adjacency matrix {}'.format(time.time()-start))
+print('Creating the normalized-Self-cautious adjacency matrix {}'.format(time.time()-start))
 
 ### Sate random seeds for reproducability ###
 random.seed(0)
 np.random.seed(0)
 torch.manual_seed(0)
 
-### Parameters for the training ###
-gcn_model = GCN(A_hat, 2, [1433,16,7])
-lr = 0.01
-optimizer = torch.optim.Adam(gcn_model.parameters(), lr=lr)
-nb_epochs = 200
-loss_function = nn.CrossEntropyLoss()
-L2_reg_lambda = 5e-2 # I obtain better results with this parameter (compared to the original one)
-# I also found dropout to harm the final accuracy
-
 ### Select the labeled nodes for training (20 samples for each class) ###
 train_labels_idx = []
 for class_ in range(7):
     available = np.argwhere(labels==class_)
     available = np.squeeze(available)
-    print(available.shape)
     samples = np.random.choice(available, size=20, replace=False)
     train_labels_idx += list(samples)
 
@@ -59,6 +49,23 @@ labels = torch.Tensor(labels).type(torch.LongTensor)
 # X = scale(X, axis=0) # scling X always hurts the final accuracy
 X_tensor = torch.Tensor(X)
 X_tensor = X_tensor.unsqueeze(0)
+
+# Create a sparse representation for A_hat
+indices = np.argwhere(A_hat>0)
+values = np.extract(A_hat>0, A_hat)
+i = torch.LongTensor(indices)
+v = torch.FloatTensor(values)
+A_sparse = torch.sparse.FloatTensor(i.t(), v, torch.Size([nb_nodes,nb_nodes]))
+
+### Parameters for the training ###
+gcn_model = GCN(A_sparse, 2, [1433,16,7])
+lr = 0.01
+optimizer = torch.optim.Adam(gcn_model.parameters(), lr=lr)
+nb_epochs = 200
+loss_function = nn.CrossEntropyLoss()
+L2_reg_lambda = 5e-2 # I obtain better results with this parameter (compared to the original one)
+# I also found dropout to harm the final accuracy
+
 
 ### Define training framework ###
 def train(model):

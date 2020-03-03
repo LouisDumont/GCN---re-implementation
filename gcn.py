@@ -7,7 +7,8 @@ import torch.nn.functional as F
 class GCN(nn.Module):
     def __init__(self, A_hat, nb_layers=2, nb_feats=[1433,16,7]):
         super(GCN, self).__init__()
-        self.A_hat = torch.Tensor(A_hat)
+        print('Creating model')
+        self.A_hat = A_hat #torch.Tensor(A_hat)
         self.nb_feats= nb_feats
         self.nb_layers = nb_layers
         # With explicit matrices multiplications
@@ -33,8 +34,8 @@ class GCN(nn.Module):
         X = F.softmax(torch.mm(self.A_hat, torch.mm(X, self.layers[self.nb_layers-1])), dim=1)'''
         # Replacing matrices with linear layers
         for i in range(self.nb_layers-1):
-            X = F.relu(torch.mm(self.A_hat, self.layers[2*i+1](self.layers[2*i](X))))
-        X = F.softmax(torch.mm(self.A_hat, self.layers[-1](self.layers[-2](X))), dim=1)
+            X = F.relu(torch.sparse.mm(self.A_hat, self.layers[2*i+1](self.layers[2*i](X))))
+        X = F.softmax(torch.sparse.mm(self.A_hat, self.layers[-1](self.layers[-2](X))), dim=1)
 
         return X
 
