@@ -25,7 +25,7 @@ class GCN(nn.Module):
 
 
     def forward(self, X):
-        X = X.view(2708,1433)
+        X = torch.squeeze(X)
 
         # With explicit matrices multiplications
         '''for i, layer in enumerate(self.layers[:-1]):
