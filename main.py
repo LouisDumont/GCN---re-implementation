@@ -6,6 +6,7 @@ import numpy as np
 import os
 import random
 from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import scale
 import time
 
 from load_cora import load_cora
@@ -28,7 +29,7 @@ D_norm = np.diag(np.sum(A_norm, axis=0))
 
 D_invsqrt = np.linalg.inv(np.sqrt(D_norm))
 A_hat = D_invsqrt @ A_norm @ D_invsqrt
-print('Normalized-Slef-cautious adjacency matrix adjacency matrix {}'.format(time.time()-start))
+print('Creating the normalized-Slef-cautious adjacency matrix {}'.format(time.time()-start))
 
 ### Sate random seeds for reproducability ###
 random.seed(0)
@@ -37,10 +38,12 @@ torch.manual_seed(0)
 
 ### Parameters for the training ###
 gcn_model = GCN(A_hat, 2, [1433,16,7])
-lr = 0.5
-optimizer = torch.optim.Adam(gcn_model.parameters(), lr=0.01)
-nb_epochs = 100
+lr = 0.01
+optimizer = torch.optim.Adam(gcn_model.parameters(), lr=lr)
+nb_epochs = 200
 loss_function = nn.CrossEntropyLoss()
+L2_reg_lambda = 5e-2 # We obtain better results with this parameter (compared to the original one)
+# We also found dropout to harm the final accuracy
 
 ### Select the labeled nodes for training (20 samples for each class) ###
 train_labels_idx = []
@@ -52,6 +55,8 @@ for class_ in range(7):
     train_labels_idx += list(samples)
 
 labels = torch.Tensor(labels).type(torch.LongTensor)
+# Normalize data (expected by the Glorot init?)
+# X = scale(X, axis=0) # scling X always hurts the final accuracy
 X_tensor = torch.Tensor(X)
 X_tensor = X_tensor.unsqueeze(0)
 
@@ -65,6 +70,7 @@ def train(model):
 
         # Define loss
         loss = loss_function(predict_scores[train_labels_idx], labels[train_labels_idx])
+        loss += L2_reg_lambda * model.layers[0].weight.norm(2)
 
         # Back-propagate
         optimizer.zero_grad()
