@@ -42,8 +42,8 @@ lr = 0.01
 optimizer = torch.optim.Adam(gcn_model.parameters(), lr=lr)
 nb_epochs = 200
 loss_function = nn.CrossEntropyLoss()
-L2_reg_lambda = 5e-2 # We obtain better results with this parameter (compared to the original one)
-# We also found dropout to harm the final accuracy
+L2_reg_lambda = 5e-2 # I obtain better results with this parameter (compared to the original one)
+# I also found dropout to harm the final accuracy
 
 ### Select the labeled nodes for training (20 samples for each class) ###
 train_labels_idx = []

@@ -34,7 +34,7 @@ def load_cora(content, cites):
         for line in adj_file:
             id1, id2 = line.split()
             idx1, idx2 = indices.index(id1), indices.index(id2)
-            # We construct a binary matrix, as in the paper (some edges could have been counted twice)
+            # Construct a binary matrix, as in the paper (some edges could have been counted twice)
             adjacency[idx1, idx2] = 1
             adjacency[idx2, idx1] = 1
     return (features, adjacency, labels)
