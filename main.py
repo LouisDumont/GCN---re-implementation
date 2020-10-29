@@ -1,13 +1,14 @@
-import torch
-import torch.nn as nn
+import os
+import random
+import time
+
 # The idea here is not to use the DGL library
 
 import numpy as np
-import os
-import random
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import scale
-import time
+import torch
+import torch.nn as nn
 
 from load_cora import load_cora
 from gcn import GCN
@@ -39,7 +40,7 @@ torch.manual_seed(0)
 ### Select the labeled nodes for training (20 samples for each class) ###
 train_labels_idx = []
 for class_ in range(7):
-    available = np.argwhere(labels==class_)
+    available = np.argwhere(labels == class_)
     available = np.squeeze(available)
     samples = np.random.choice(available, size=20, replace=False)
     train_labels_idx += list(samples)
@@ -51,19 +52,19 @@ X_tensor = torch.Tensor(X)
 X_tensor = X_tensor.unsqueeze(0)
 
 # Create a sparse representation for A_hat
-indices = np.argwhere(A_hat>0)
-values = np.extract(A_hat>0, A_hat)
+indices = np.argwhere(A_hat > 0)
+values = np.extract(A_hat > 0, A_hat)
 i = torch.LongTensor(indices)
 v = torch.FloatTensor(values)
-A_sparse = torch.sparse.FloatTensor(i.t(), v, torch.Size([nb_nodes,nb_nodes]))
+A_sparse = torch.sparse.FloatTensor(i.t(), v, torch.Size([nb_nodes, nb_nodes]))
 
 ### Parameters for the training ###
-gcn_model = GCN(A_sparse, 2, [1433,16,7])
+gcn_model = GCN(A_sparse, 2, [1433, 16, 7])
 lr = 0.01
 optimizer = torch.optim.Adam(gcn_model.parameters(), lr=lr)
 nb_epochs = 200
 loss_function = nn.CrossEntropyLoss()
-L2_reg_lambda = 5e-2 # I obtain better results with this parameter (compared to the original one)
+L2_reg_lambda = 5e-2  # I obtain better results with this parameter (compared to the original one)
 # I also found dropout to harm the final accuracy
 
 
@@ -86,18 +87,16 @@ def train(model):
 
         # Print loss, train accuracy and total accuracy
         predict_labels = np.argmax(predict_scores.data, axis=1)
-        train_accuracy = accuracy_score(predict_labels[train_labels_idx], labels.data[train_labels_idx])
+        train_accuracy = accuracy_score(predict_labels[train_labels_idx],
+                                        labels.data[train_labels_idx])
         global_accuracy = accuracy_score(predict_labels, labels.data)
 
-        if i%10 == 0:
-            print('Epoch {}: Loss {}, Train Accuracy {}, Global Accuracy {}, Duration: {}'.format(i, loss.data, train_accuracy, global_accuracy, time.time()-start))
+        if i % 10 == 0:
+            print('Epoch {}: Loss {}, Train Accuracy {}, Global Accuracy {}, Duration: {}'.format(i, loss.data, train_accuracy,
+                                                                                                  global_accuracy, time.time()-start))
 
     pass
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     train(gcn_model)
-
-
-
-
-

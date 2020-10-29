@@ -11,11 +11,12 @@ class_id_dic = {
     'Theory': 6
 }
 
+
 def load_cora(content, cites):
     with open(content, 'r') as feat_file:
-        features = [] # Nodes features
-        indices = [] # paper_id
-        labels = [] # class label
+        features = []  # Nodes features
+        indices = []  # paper_id
+        labels = []  # class label
         # We can't really do better than reading the whole file line by line
         for line in feat_file:
             line_content = line.split()
@@ -39,7 +40,8 @@ def load_cora(content, cites):
             adjacency[idx2, idx1] = 1
     return (features, adjacency, labels)
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     path = os.getcwd() + '/cora_own/'
     features, adjacency, labels = load_cora(path+'cora.content', path+'cora.cites')
     print('Shapes:', features.shape, adjacency.shape)
